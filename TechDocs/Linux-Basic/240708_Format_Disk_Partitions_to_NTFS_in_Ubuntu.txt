@@ -1,0 +1,59 @@
+Format_Disk_Partitions_to_NTFS_in_Ubuntu
+
+
+1.  Install ntfs-3g:
+
+    $ sudo apt update
+
+    $ sudo apt install ntfs-3g
+
+
+2.  Check HD partition name:
+
+    $ sudo fdisk -l
+
+    ...
+    Device     Start        End    Sectors  Size Type
+    /dev/sda1   2048 7814035455 7814033408  3.6T Linux filesystem
+    ...
+
+
+3.  Umount disk
+
+    $ sudo umount /dev/sda1
+
+
+4.  Formate disk
+
+    $ sudo mkfs.ntfs /dev/sda1
+
+
+5.  Mount disk
+
+    $ mkdir -p /mnt/data
+    $ sudo mount -t ntfs-3g /dev/sda1 /mnt/data
+
+
+6. Auto mount disk
+
+    $ lsblk -o NAME,FSTYPE,SIZE,UUID,MOUNTPOINTS
+
+    NAME        FSTYPE     SIZE UUID                                 MOUNTPOINTS
+    ...
+    sda                    3.6T
+    └─sda1      ntfs       3.6T 7880B7A353D1430A                     /mnt/data
+    ...
+
+    $ sudo nano /etc/fstab
+
+        UUID=7880B7A353D1430A  /mnt/data   ntfs    defaults        0       0
+
+
+7.  Reboot  
+
+    $ sudo reboot
+
+
+
+
+
