@@ -1,0 +1,203 @@
+Install Gitlab & Runner on Ubuntu 24.04
+
+
+1.	Create Gitlab account 
+      
+    $ sudo adduser gitlab
+
+	$ sudo usermod -aG sudo gitlab
+	$ newgrp sudo
+	
+    $ sudo usermod -aG docker gitlab
+	$ newgrp docker
+
+	$ su - gitlab
+
+	
+	# If want to use $USER to edit gitlab config files
+        
+		$ sudo usermod -aG gitlab $USER 
+
+ 		$ newgrp gitlab
+
+		$ sudo chmod 775 /home/gitlab
+
+
+	# Make Gitlab and Runner Home dir
+	
+		$ sudo mkdir -p /srv/gitlab/{config,logs,data,gitlab-runner}
+
+
+2.	Setup System Environment
+    
+	
+	# Edit Global System Environment Variable
+
+		.env.gitlab
+		-----------------------------------------------------------------------
+		GITLAB_HOME=/srv/gitlab
+		GITLAB_RUNNER_HOME=/srv/gitlab/gitlab-runner
+		GITLAB_HOST_IP=192.168.0.133
+        GITLAB_HOST_NAME=dev.example.tw
+		-----------------------------------------------------------------------
+
+	# Environment variable setup
+
+		env-setup.sh
+		-----------------------------------------------------------------------
+        #!/bin/bash
+        
+        ENV_FILE="/home/gitlab/.env.gitlab"
+        
+        if [ -f "$ENV_FILE" ]; then
+            export $(cat "$ENV_FILE" | grep -v '^#' | xargs)
+            echo "Environment variables from $ENV_FILE file loaded."
+        else
+            echo "Error: $ENV_FILE file not found."
+            exit 1
+        fi
+		-----------------------------------------------------------------------
+
+	# Environment variable unset
+
+		env-unset.sh
+		-----------------------------------------------------------------------
+        #!/bin/bash
+        
+        ENV_FILE="/home/gitlab/.env.gitlab"
+        
+        if [ -f "$ENV_FILE" ]; then
+          while IFS= read -r line; do
+            if [[ "$line" =~ ^[[:space:]]*# || -z "$line" ]]; then
+              continue
+            fi
+            key=$(echo "$line" | cut -d= -f1)
+            unset "$key"
+          done < "$ENV_FILE"
+          echo "Environment variables unset from $ENV_FILE."
+        else
+          echo "Error: $ENV_FILE file not found."
+          exit 1
+        fi
+        
+        echo "Unset completed."
+		-----------------------------------------------------------------------
+
+    # Add the following text to the end of '.bashrc' file.
+
+		-----------------------------------------------------------------------
+		source /home/gitlab/env-setup.sh
+		-----------------------------------------------------------------------
+
+    # Make the environment settings take effect immediately.
+    
+		$ source ~/.bahsrc
+	
+	# Check Gitlab environment variable:
+
+        $ printenv | grep GITLAB
+        
+        GITLAB_HOST_NAME=dev.example.tw
+        GITLAB_HOME=/srv/gitlab
+        GITLAB_RUNNER_HOME=/srv/gitlab/gitlab-runner
+        GITLAB_HOST_IP=192.168.0.133
+
+
+3.	Edit Docker-compose.yml
+
+	docker-compose.yml
+	---------------------------------------------------------------------------
+    services:
+      gitlab:
+        image: gitlab/gitlab-ce:16.8.8-ce.0
+        container_name: gitlab
+        hostname: '${GITLAB_HOST_NAME}'
+        restart: always
+        environment:
+          GITLAB_OMNIBUS_CONFIG: |
+            external_url 'http://${GITLAB_HOST_IP}:8929'
+            gitlab_rails['gitlab_shell_ssh_port'] = 8922
+        ports:
+          - '8929:8929'
+          - '8943:443'
+          - '8922:22'
+        volumes:
+          - '${GITLAB_HOME}/config:/etc/gitlab'
+          - '${GITLAB_HOME}/logs:/var/log/gitlab'
+          - '${GITLAB_HOME}/data:/var/opt/gitlab'
+    
+      gitlab-runner:
+        image: gitlab/gitlab-runner:alpine
+        container_name: gitlab-runner
+        restart: always
+        volumes:
+          - /var/run/docker.sock:/var/run/docker.sock
+          - '$GITLAB_HOME/gitlab-runner:/etc/gitlab-runner'
+	---------------------------------------------------------------------------
+
+	# Start gitlab
+	
+		$ docker-compose up -d gitlab
+
+    # Verify gitlab container_name
+
+        $ docker ps
+
+        CONTAINER ID   IMAGE                                 COMMAND                  CREATED          STATUS                             PORTS                                                                                                                                  NAMES
+        abc753c5f5a7   gitlab/gitlab-ce:16.8.8-ce.0          "/assets/wrapper"        40 seconds ago   Up 39 seconds (health: starting)   80/tcp, 0.0.0.0:8929->8929/tcp, :::8929->8929/tcp, 0.0.0.0:8922->22/tcp, :::8922->22/tcp, 0.0.0.0:8943->443/tcp, :::8943->443/tcp      gitlab
+        8f3afd910507   gitlab/gitlab-runner:alpine           "/usr/bin/dumb-init …"   40 seconds ago   Up 39 seconds                                                                                                                                                             gitlab-runner
+
+	# Find root's default password
+	
+		$ sudo cat $GITLAB_HOME/config/initial_root_password | grep 'Password:'
+		
+		Password: bfVExDjvmVKQkL28KoliPLY3vRgGbeqLAWb/BJUpDLA=
+
+    # Login gitlab UI and change root's password
+
+    # Create another administrator account
+
+
+4.  Setup gitlab runner
+
+    # Start gitlab-runner
+
+	    $ docker-compose up -d gitlab-runner
+
+
+    # Create gitlab runner
+
+        Admin Area -> CI/CD -> Runners -> New instance runner
+		
+		'Platform' -> 'Operating systems' -> 'Linux' -> Add 'develop' in 'Tags' -> Click 'Create runner'
+		
+		# Get command as follows:
+
+            $ gitlab-runner register  --url http://192.168.0.133:8929  --token glrt-HhMxXnqs2gWyQteuWQsj
+
+
+    # Register shard runner
+
+        $ docker exec -it gitlab-runner \
+		  gitlab-runner register  --url http://192.168.0.133:8929  --token glrt-HhMxXnqs2gWyQteuWQsj
+
+			Runtime platform                                    arch=amd64 os=linux pid=22 revision=fe451d5a version=17.1.0
+			Running in system-mode.
+				
+			Enter the GitLab instance URL (for example, https://gitlab.com/):
+			[http://192.168.0.133:8929]:
+			Verifying runner... is valid                        runner=HhMxXnqs2
+			Enter a name for the runner. This is stored only in the local config.toml file:
+			[8f3afd910507]:
+			Enter an executor: virtualbox, docker-windows, kubernetes, docker-autoscaler, instance, custom, shell, parallels, ssh, docker, docker+machine:
+			docker
+			Enter the default Docker image (for example, ruby:2.7):
+			alpine
+			Runner registered successfully. Feel free to start it, but if it's running already the config should be automatically reloaded!
+				
+			Configuration (with the authentication token) was saved in "/etc/gitlab-runner/config.toml"
+
+
+
+
+
