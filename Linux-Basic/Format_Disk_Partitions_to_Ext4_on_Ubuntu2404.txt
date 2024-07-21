@@ -1,0 +1,35 @@
+Format_Disk_Partitions_to_Ext4_on_Ubuntu 24.04
+
+
+1.  Get UUID:
+
+    $ sudo blkid /dev/sda1
+        
+    /dev/sda1: UUID="1337dad8-5e42-4f0a-b0fb-479231eeb6fa" BLOCK_SIZE="4096" TYPE="ext4" PARTLABEL="primary" PARTUUID="e7269221-7499-4c8b-892e-2bf62a1dff31"
+
+
+2.  Edit /etc/fstab:
+
+    # Add follows context:
+
+    /etc/fstab
+    ---------------------------------------------------------------------------
+    UUID=1337dad8-5e42-4f0a-b0fb-479231eeb6fa  /mnt/data  ext4 defaults 0 2
+    ---------------------------------------------------------------------------
+
+
+3.  Daemon reload and mount disk
+
+    $ sudo systemctl daemon-reload
+
+    $ sudo mount -a
+
+
+4.  Reboot 
+
+    $ sudo reboot
+
+
+5. Check Disk
+
+    $ df

@@ -1,0 +1,315 @@
+Installing Minikube on Ubuntu
+
+
+1.  Update package index & upgrade & dependenices
+
+    $ sudo apt update & sudo apt upgrade
+
+    $ sudo apt install -y curl wget apt-transport-https
+
+
+2.  Install Docker & Docker-compose
+
+
+3.  Install Kubectl
+
+    $ mkdir minikube & cd minikube
+
+    # Get latest minikube version
+    
+    $ version=$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)
+    $ echo $version
+        
+        v1.30.2
+
+    # Make minikube download url
+    
+    $ url="https://storage.googleapis.com/kubernetes-release/release/${version}/bin/linux/amd64/kubectl"
+    $ echo $url
+
+    $ curl -LO $url
+
+          % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                         Dload  Upload   Total   Spent    Left  Speed
+        100 49.0M  100 49.0M    0     0  16.6M      0  0:00:02  0:00:02 --:--:-- 16.6M
+
+    $ chmod +x kubectl
+
+    $ sudo mv kubectl /usr/local/bin/
+
+    $ kubectl version -o yaml
+
+        clientVersion:
+          buildDate: "2024-06-11T20:29:44Z"
+          compiler: gc
+          gitCommit: 39683505b630ff2121012f3c5b16215a1449d5ed
+          gitTreeState: clean
+          gitVersion: v1.30.2
+          goVersion: go1.22.4
+          major: "1"
+          minor: "30"
+          platform: linux/amd64
+        kustomizeVersion: v5.0.4-0.20230601165947-6ce0bf390ce3
+
+        The connection to the server localhost:8080 was refused - did you specify the right host or port?
+
+
+4.  Install Minikube
+
+    $ curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+
+          % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                         Dload  Upload   Total   Spent    Left  Speed
+        100 91.1M  100 91.1M    0     0  21.0M      0  0:00:04  0:00:04 --:--:-- 22.8M
+
+
+    $ sudo install minikube-linux-amd64 /usr/local/bin/minikube
+
+    $ minikube version
+    
+        minikube version: v1.33.1
+        commit: 5883c09216182566a63dff4c326a6fc9ed2982ff
+
+
+5.  Start Minikube
+
+    $ minikube start --cpus=4 --memory=8g --driver=docker
+
+        * minikube v1.33.1 on Ubuntu 24.04
+        ...
+
+
+6.  Minikube status & cluster info
+
+    $ minikube status
+
+        minikube
+        type: Control Plane
+        host: Running
+        kubelet: Running
+        apiserver: Running
+        kubeconfig: Configured
+
+    $ kubectl cluster-info
+
+        Kubernetes control plane is running at https://192.168.49.2:8443
+        CoreDNS is running at https://192.168.49.2:8443/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
+
+        To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
+
+
+    # Dump cluster info to file
+
+        $ kubectl cluster-info dump >> minikube-cluster-info.txt
+
+
+    $ kubectl get nodes
+        
+        NAME       STATUS   ROLES           AGE   VERSION
+        minikube   Ready    control-plane   91s   v1.30.0
+
+
+7.  Managing Addons on minikube
+
+    $  minikube addons list
+    
+    |-----------------------------|----------|--------------|--------------------------------|
+    |         ADDON NAME          | PROFILE  |    STATUS    |           MAINTAINER           |
+    |-----------------------------|----------|--------------|--------------------------------|
+    ...
+    | metrics-server              | minikube | disabled     | Kubernetes                     |
+    ...
+    |-----------------------------|----------|--------------|--------------------------------|
+
+    $ minikube addons enable metrics-server
+
+        * metrics-server is an addon maintained by Kubernetes. For any concerns contact minikube on GitHub.
+        You can view the list of minikube maintainers at: https://github.com/kubernetes/minikube/blob/master/OWNERS
+          - Using image registry.k8s.io/metrics-server/metrics-server:v0.7.1
+        * The 'metrics-server' addon is enabled
+
+
+    $ minikube addons enable dashboard
+
+        * dashboard is an addon maintained by Kubernetes. For any concerns contact minikube on GitHub.
+        You can view the list of minikube maintainers at: https://github.com/kubernetes/minikube/blob/master/OWNERS
+          - Using image docker.io/kubernetesui/dashboard:v2.7.0
+          - Using image docker.io/kubernetesui/metrics-scraper:v1.0.8
+        * Some dashboard features require the metrics-server addon. To enable all features please run:
+
+                minikube addons enable metrics-server
+
+        * The 'dashboard' addon is enabled
+
+
+    $ minikube addons enable ingress
+        
+        * ingress is an addon maintained by Kubernetes. For any concerns contact minikube on GitHub.
+        You can view the list of minikube maintainers at: https://github.com/kubernetes/minikube/blob/master/OWNERS
+          - Using image registry.k8s.io/ingress-nginx/controller:v1.10.1
+          - Using image registry.k8s.io/ingress-nginx/kube-webhook-certgen:v1.4.1
+          - Using image registry.k8s.io/ingress-nginx/kube-webhook-certgen:v1.4.1
+        * Verifying ingress addon...
+
+        * The 'ingress' addon is enabled
+
+
+8.  Dashboard
+
+    # Get Dashboard URL
+        
+        $ minikube dashboard --url
+
+        * Verifying dashboard health ...
+        * Launching proxy ...
+        * Verifying proxy health ...
+        http://127.0.0.1:40221/api/v1/namespaces/kubernetes-dashboard/services/http:kubernetes-dashboard:/proxy/
+
+
+    # Run kubectl proxy on background
+    
+        $ kubectl proxy --address='0.0.0.0' --disable-filter=true &
+
+        W0716 22:54:21.903540   28134 proxy.go:177] Request filter disabled, your proxy is vulnerable to XSRF attacks, please be cautious
+        Starting to serve on [::]:8001
+
+
+    # Browser board:
+
+        http://<Minikube IP>:8001/api/v1/namespaces/kubernetes-dashboard/services/http:kubernetes-dashboard:/proxy/
+
+
+9.  Verify Minikube Installation
+
+    # Create nginx-test deployment
+    
+        $ kubectl create deployment nginx-test --image=nginx
+        deployment.apps/nginx-test created
+
+
+    # Show deployment status
+
+        $ kubectl get deployments nginx-test
+        
+            NAME         READY   UP-TO-DATE   AVAILABLE   AGE
+            nginx-test   1/1     1            1           42s
+
+
+    #  Show pod status
+        
+        $ kubectl get pods
+            
+            NAME                          READY   STATUS    RESTARTS   AGE
+            nginx-test-574bc578fc-rsrps   1/1     Running   0          54s
+
+
+    # Expose the deployment
+
+        $ kubectl expose deployment nginx-test --name=nginx-svc --type=NodePort --port=80
+        
+            service/nginx-svc exposed
+        
+        $ kubectl get svc nginx-svc
+        
+            NAME        TYPE       CLUSTER-IP     EXTERNAL-IP   PORT(S)        AGE
+            nginx-svc   NodePort   10.111.82.50   <none>        80:30771/TCP   42s
+
+
+    # Get service url
+
+        $ minikube service nginx-svc --url
+
+            http://192.168.49.2:30771
+
+    # Test url
+
+        $ curl http://192.168.49.2:30771
+
+        <!DOCTYPE html>
+        <html>
+        <head>
+        <title>Welcome to nginx!</title>
+        <style>
+        html { color-scheme: light dark; }
+        body { width: 35em; margin: 0 auto;
+        font-family: Tahoma, Verdana, Arial, sans-serif; }
+        </style>
+        </head>
+        <body>
+        <h1>Welcome to nginx!</h1>
+        <p>If you see this page, the nginx web server is successfully installed and
+        working. Further configuration is required.</p>
+
+        <p>For online documentation and support please refer to
+        <a href="http://nginx.org/">nginx.org</a>.<br/>
+        Commercial support is available at
+        <a href="http://nginx.com/">nginx.com</a>.</p>
+
+        <p><em>Thank you for using nginx.</em></p>
+        </body>
+        </html>
+
+
+10. Managing Minikube Cluster
+
+    # Stop 
+
+        $ minikube stop
+
+    # Delete 
+
+        $ minikube delete
+
+    # Start
+
+        $ minikube start
+
+
+9.  Auto start
+
+    # Edit minikube.service
+
+        /etc/systemd/system/minikube.service
+        -----------------------------------------------------------------------
+        [Unit]
+        Description=Minikube and Kubernetes Proxy
+        After=network.target
+
+        [Service]
+        Type=forking
+        ExecStart=/usr/local/bin/minikube start --driver=docker
+        RemainAfterExit=yes
+        ExecStop=/usr/local/bin/minikube stop
+        StandardOutput=journal
+        Restart=always
+        RestartSec=10
+        User=<username>
+        Environment=MINIKUBE_HOME=/home/<username>/.minikube
+
+        [Install]
+        WantedBy=multi-user.target
+        -----------------------------------------------------------------------
+
+    # Reaload daemon and start
+
+        $ sudo systemctl daemon-reaload
+        $ sudo systemctl start minikube.service
+
+
+10. Delete minikube
+
+    # Stop minikube
+
+        $ minikube stop
+
+    # Delete minikube
+
+        $ minikube delete
+
+    $ Remove auto start
+
+        $ sudo unlink /etc/systemd/system/minikube.service
+
+    # Reload daemon
+
+        $ sudo systemctl daemon-reload
