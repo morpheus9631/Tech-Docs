@@ -241,7 +241,7 @@ Installing MicroK8s on Ubuntu 24.04
             ====
             ca.crt:     1123 bytes
             namespace:  11 bytes
-            token:      eyJhbGciOiJSUzI1NiIsImtpZCI6IjBYTnJ4S3VGRTFONGF3UDRLVlRYSjByNjlIbHRmS3dwbm92Ni01WjNmMjgifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJrdWJlLXN5c3RlbSIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VjcmV0Lm5hbWUiOiJtaWNyb2s4cy1kYXNoYm9hcmQtdG9rZW4iLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC5uYW1lIjoiZGVmYXVsdCIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6IjcwZTlmNmM2LTI0MjItNDQ3OS1iYjYzLTdjMzk1YTE3ZWY3NCIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDprdWJlLXN5c3RlbTpkZWZhdWx0In0.KHnWbQn9Pp2h1rO520szGKV9_rNgudf261aM6Ris0N8fmGsNv1vBl4fP6zrngDaGMDOW9LoZokZPzPg8dTioAbGqMSkak4QVCYQO-UkAhwNIpO8xK2q8Rl-xriF_-iFuZ2jZLGhLjOcs_ztAgL31rFd0gHnU09BjGhSx5fxHFo46lMpQAowRha1Z3Ca5qqUYeeGdrzeCwVg6bsU4cr2NYANHresG170sc4966Orkz8mX3tiPcnn1JH849bNmL4-kj6JZ3Xohl1-AhBMK3iZC_47ylMSexXlFd3W0cJ0Nz1pJPXpwM_LEShxesVrH-alIbPbbzJWnJfI-r46NWtSHWg
+            token:      eyJhbGciOiJSUzI1NiIsImtpZCI6IjBYTnJ4S3VGRTFONGF3UDRLVlRYSjByNjlIbHRmS3dwbm92Ni01WjNmMjgifQ....-r46NWtSHWg
 
 
     # Create expiration token
