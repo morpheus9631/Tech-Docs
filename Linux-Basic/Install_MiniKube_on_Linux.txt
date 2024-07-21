@@ -72,7 +72,7 @@ Installing Minikube on Ubuntu
 
 5.  Start Minikube
 
-    $ minikube start --driver=docker
+    $ minikube start --cpus=4 --memory=8g --driver=docker
 
         * minikube v1.33.1 on Ubuntu 24.04
         ...
@@ -262,3 +262,53 @@ Installing Minikube on Ubuntu
     # Start
 
         $ minikube start
+
+
+9.  Auto start
+
+    # Edit minikube.service
+
+        /etc/systemd/system/minikube.service
+        -----------------------------------------------------------------------
+        [Unit]
+        Description=Minikube and Kubernetes Proxy
+        After=network.target
+
+        [Service]
+        Type=forking
+        ExecStart=/usr/local/bin/minikube start --driver=docker
+        RemainAfterExit=yes
+        ExecStop=/usr/local/bin/minikube stop
+        StandardOutput=journal
+        Restart=always
+        RestartSec=10
+        User=<username>
+        Environment=MINIKUBE_HOME=/home/<username>/.minikube
+
+        [Install]
+        WantedBy=multi-user.target
+        -----------------------------------------------------------------------
+
+    # Reaload daemon and start
+
+        $ sudo systemctl daemon-reaload
+        $ sudo systemctl start minikube.service
+
+
+10. Delete minikube
+
+    # Stop minikube
+
+        $ minikube stop
+
+    # Delete minikube
+
+        $ minikube delete
+
+    $ Remove auto start
+
+        $ sudo unlink /etc/systemd/system/minikube.service
+
+    # Reload daemon
+
+        $ sudo systemctl daemon-reload
