@@ -153,6 +153,13 @@ Install Gitlab & Runner on Ubuntu 24.04
 		
 		Password: bfVExDjvmVKQkL28KoliPLY3vRgGbeqLAWb/BJUpDLA=
 
+    # Change root's password
+    
+        $ docker exec -it gitlab bash gitlab-rake 'gitlab:password:reset[root]'
+        Enter password:
+        Confirm password:
+        Password successfully updated for user with username root.    
+
     # Login gitlab UI and change root's password
 
     # Create another administrator account

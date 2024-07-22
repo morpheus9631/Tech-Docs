@@ -1,0 +1,78 @@
+Enable GPU on MicroK8s.txt
+
+
+1.  Install GPU driver on Host Machine
+
+
+2.  Enable GPU
+
+    $ microk8s enable nvidia
+
+        Addon core/dns is already enabled
+        Addon core/helm3 is already enabled
+        Checking if NVIDIA driver is already installed
+        GPU 0: NVIDIA GeForce RTX 4060 Ti (UUID: GPU-028b458b-cc6a-f797-11ad-6000b993db73)
+        "nvidia" has been added to your repositories
+        Hang tight while we grab the latest from your chart repositories...
+        ...Successfully got an update from the "nvidia" chart repository
+        Update Complete. ⎈Happy Helming!⎈
+        Deploy NVIDIA GPU operator
+        Using host GPU driver
+        ^[[NAME: gpu-operator
+        LAST DEPLOYED: Mon Jul 22 21:31:14 2024
+        NAMESPACE: gpu-operator-resources
+        STATUS: deployed
+        REVISION: 1
+        TEST SUITE: None
+        Deployed NVIDIA GPU operator
+
+
+3.  Test GPU
+
+    $ microk8s kubectl logs -n gpu-operator-resources -lapp=nvidia-operator-validator -c nvidia-operator-validator
+    
+    all validations are successful
+
+
+4.  Deploy a test pod
+
+    # Edit gpu-test-pod.yaml
+
+    ---------------------------------------------------------------------------
+    apiVersion: v1
+    kind: Pod
+    metadata:
+      name: cuda-vector-add
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: cuda-vector-add
+          image: "k8s.gcr.io/cuda-vector-add:v0.1"
+          resources:
+            limits:
+              nvidia.com/gpu: 1
+    ---------------------------------------------------------------------------
+
+    # Wait a moment until the pod is Completed
+
+
+5.  Check pod logs
+
+    $ microk8s kubectl logs cuda-vector-add
+    
+        [Vector addition of 50000 elements]
+        Copy input data from the host memory to the CUDA device
+        CUDA kernel launch with 196 blocks of 256 threads
+        Copy output data from the CUDA device to the host memory
+        Test PASSED
+        Done
+
+    # Finished
+
+
+6.  Reference
+
+    https://kubernetes.io/docs/tasks/manage-gpus/scheduling-gpus/
+    
+    https://microk8s.io/docs/addon-gpu
+
