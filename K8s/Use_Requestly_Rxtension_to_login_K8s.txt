@@ -1,0 +1,46 @@
+Use Requestly Rxtension to login K8s
+
+
+1.  Install Requestly
+
+    # Open Chrome browse
+
+    # Download requestly
+
+        https://chromewebstore.google.com/detail/requestly-intercept-modif/mdnleldcmiljblolnjhpnblkcekpdkpa
+
+    # Add to Chrome
+
+
+2.  Setup Requestly
+
+    Home -> HTP Rules -> New Rule -> Modify Headers
+
+    # Give rules a name, e.g. myK8s
+    
+        Add description (optional) ->  'myK8s'
+
+    # Apply URL
+
+        Enter 'https://<K8s IP>:<Port>' on text area of 'Enter url here or leave this...' 
+
+    # Add Request Headers
+
+        Add Request Headers -> Request Header -> 'Authorization'
+
+        value -> <your K8s token>
+
+    # Save Rules
+
+        On the top right, click '*Save rule'
+
+    # Test Rule
+
+        Enter K8s URL on test text area (on left bottom), click 'Test Rule' button
+
+    # Finished
+
+
+
+
+
