@@ -38,11 +38,11 @@ Format_Disk_Partitions_to_NTFS_in_Ubuntu
 
     $ lsblk -o NAME,FSTYPE,SIZE,UUID,MOUNTPOINTS
 
-    NAME        FSTYPE     SIZE UUID                                 MOUNTPOINTS
-    ...
-    sda                    3.6T
-    └─sda1      ntfs       3.6T 7880B7A353D1430A                     /mnt/data
-    ...
+        NAME        FSTYPE     SIZE UUID                                 MOUNTPOINTS
+        ...
+        sda                    3.6T
+        └─sda1      ntfs       3.6T 7880B7A353D1430A                     /mnt/data
+        ...
 
     $ sudo nano /etc/fstab
 

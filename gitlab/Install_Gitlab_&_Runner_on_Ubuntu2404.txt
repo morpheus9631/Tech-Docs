@@ -3,15 +3,17 @@ Install Gitlab & Runner on Ubuntu 24.04
 
 1.	Create Gitlab account 
       
-    $ sudo adduser gitlab
+    # Create gitlab account
+    
+        $ sudo adduser gitlab
 
-	$ sudo usermod -aG sudo gitlab
-	$ newgrp sudo
+	    $ sudo usermod -aG sudo gitlab
+	    $ newgrp sudo
 	
-    $ sudo usermod -aG docker gitlab
-	$ newgrp docker
+        $ sudo usermod -aG docker gitlab
+	    $ newgrp docker
 
-	$ su - gitlab
+	    $ su - gitlab
 
 	
 	# If want to use $USER to edit gitlab config files
@@ -38,7 +40,7 @@ Install Gitlab & Runner on Ubuntu 24.04
 		GITLAB_HOME=/srv/gitlab
 		GITLAB_RUNNER_HOME=/srv/gitlab/gitlab-runner
 		GITLAB_HOST_IP=192.168.0.133
-        GITLAB_HOST_NAME=dev.example.tw
+        GITLAB_HOST_NAME=git.example.tw
 		-----------------------------------------------------------------------
 
 	# Environment variable setup
