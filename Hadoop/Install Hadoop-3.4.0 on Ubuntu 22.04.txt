@@ -1,0 +1,366 @@
+Install Hadoop 3.4.0 on Ubuntu 20.04
+
+
+1. 	Edit route file
+
+	# Add the following lines to the file
+	
+		$ sudo nano /etc/hosts
+	
+		-----------------------------------------------------------------------
+		192.168.0.133 hadoop133
+		-----------------------------------------------------------------------
+
+
+2. 	Install necessary packages
+
+    # Install default-jdk openjdk-11-jdk-headless
+	    
+        $ sudo apt install dfault-jdk -y
+
+        $ java -version 
+
+        openjdk version "11.0.24" 2024-07-16
+        OpenJDK Runtime Environment (build 11.0.24+8-post-Ubuntu-1ubuntu322.04)
+        OpenJDK 64-Bit Server VM (build 11.0.24+8-post-Ubuntu-1ubuntu322.04, mixed mode, sharing)
+
+	# Install OpenSSH server & client
+	
+		$ sudo apt install openssh-server openssh-client -y
+
+
+3. 	Create `hadoop` account
+
+	# Add a new user `hadoop`
+	
+		$ sudo adduser hadoop
+	
+	# Add to the sudo group
+	
+		$ sudo usermod -aG sudo hadoop
+        $ newgrp sudo
+		
+	# Switch to `hadoop` account
+	
+		$ sudo su - hadoop
+
+	# Generate RSA keys
+	
+		$ ssh-keygen -t rsa
+		
+	# Add public key to authorized keys
+	
+		$ sudo cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+		$ sudo chmod 640 ~/.ssh/authorized_keys
+		
+	# Verify ssh connect
+	
+		$ ssh -p <port> localhost
+	
+
+4. 	Install Apache Hadoop
+
+	# Download stable version
+	
+		$ wget https://downloads.apache.org/hadoop/common/stable/hadoop-3.4.0.tar.gz
+
+	# Extract the downloaded file
+	
+		$ tar -xvzf hadoop-3.4.0.tar.gz
+		
+	# Create logs & tmp dir
+	
+		$ mkdir hadoop-3.4.0/{logs,tmp}
+	
+	# Move directory
+	
+		$ sudo mv hadoop-3.4.0 /opt/hadoop-3.4.0
+		
+	# Change the ownership of hadoop directory
+	
+		$ sudo chown -R hadoop:hadoop /opt/hadoop-3.4.0
+
+
+5.	Configure Hadoop 
+	
+	# There are a lot of configuration files that need to be edited.
+	
+		.bashrc
+		hadoop-env.sh
+		core-site.xml
+		hdfs-site.xml
+		mapred-site.xml
+		yarn-site.xml
+		
+	# .bashrc
+
+		For simplity, create a script file to export the Hadoop paths, 
+		and then the .bashrc file will source this script.
+
+        # hadoop-paths.sh
+
+            $ nano ~/hadoop-paths.sh
+
+		    hadoop-paths.sh
+		    ---------------------------------------------------------------
+		    # Hadoop Path Variables
+		    export HADOOP_HOME=/opt/hadoop-3.4.0
+		    export HADOOP_INSTALL=$HADOOP_HOME
+		    export HADOOP_MAPRED_HOME=$HADOOP_HOME
+		    export HADOOP_COMMON_HOME=$HADOOP_HOME
+		    export HADOOP_HDFS_HOME=$HADOOP_HOME
+		    export HADOOP_COMMON_LIB_NATIVE_DIR=$HADOOP_HOME/lib/native
+		    export PATH=$PATH:$HADOOP_HOME/sbin:$HADOOP_HOME/bin
+		    export HADOOP_OPTS="-Djava.library.path=$HADOOP_HOME/lib/native"
+		    export HADOOP_LOG_DIR=$HADOOP_HOME/logs
+		    export HADOOP_TMP_DIR=$HADOOP_HOME/tmp
+		    export YARN_HOME=$HADOOP_HOME
+		
+		    export LD_LIBRARY_PATH=$HADOOP_HOME/lib/native
+		    ---------------------------------------------------------------
+
+            $ chmod +x ~/hadoop-paths.sh
+
+        # Edit .bashrc
+        
+            $ nano ~/.bashrc
+
+		    .bashrc
+		    -------------------------------------------------------------------
+		    ...
+		
+		    export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+		    source /home/hadoop/hadoop-paths.sh
+		    -------------------------------------------------------------------
+		
+	    # Activate the path variables
+		
+		    $ source ~/.bashrc
+
+        # Check
+
+            $ printenv | grep HADOOP
+        
+            HADOOP_OPTS=-Djava.library.path=/opt/hadoop-3.4.0/lib/native
+            HADOOP_INSTALL=/opt/hadoop-3.4.0
+            HADOOP_MAPRED_HOME=/opt/hadoop-3.4.0
+            HADOOP_COMMON_HOME=/opt/hadoop-3.4.0
+            HADOOP_TMP_DIR=/opt/hadoop-3.4.0/tmp
+            HADOOP_HOME=/opt/hadoop-3.4.0
+            HADOOP_HDFS_HOME=/opt/hadoop-3.4.0
+            HADOOP_COMMON_LIB_NATIVE_DIR=/opt/hadoop-3.4.0/lib/native
+            HADOOP_LOG_DIR=/opt/hadoop-3.4.0/logs
+			
+			
+	# hadoop-env.sh
+	
+		# Edit hadoop-env.sh
+		
+			$ nano $HADOOP_HOME/etc/hadoop/hadoop-env.sh
+			
+		# Find the Java path
+		
+			$ dirname $(dirname $(readlink -f $(which java)))
+			
+			/usr/lib/jvm/java-11-openjdk-amd64
+		
+		# Add the following line to the file
+		
+			-----------------------------------------------------------
+			export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+			export HADOOP_SSH_OPTS="-p <port num>"
+			-----------------------------------------------------------
+			
+			e.g.
+			-----------------------------------------------------------
+			export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+			export HADOOP_SSH_OPTS="-p 2022"
+			-----------------------------------------------------------
+			
+			
+	# core-site.xml
+	
+		# Edit
+		
+			$ nano $HADOOP_HOME/etc/hadoop/core-site.xml
+			
+		    # Add the following lines to the file
+		
+			-----------------------------------------------------------
+			<configuration>
+			  <property>
+				<name>fs.defaultFS</name>
+				<value>hdfs://0.0.0.0:9000</value>
+				<description>The default file system URI</description>
+			  </property>
+			</configuration>
+			-----------------------------------------------------------
+		
+			# 0.0.0.0: Liten on all available IPs, suitable for production
+			# 172.0.0.1 & localhost: Local only, suitable for development & testing
+			
+		# Save and close the file
+		
+		
+	# hdfs-site.xml
+	
+		# Create directories to store node metadata
+		
+			$ sudo mkdir -p /mnt/data/hadoop/hdfs/{namenode,datanode}
+            $ sudo chown -R hadoop:hadoop /mnt/data/hadoop
+            $ sudo chmod -R 775 /mnt/data/hadoop
+	
+		# Edit file
+		
+			$ nano $HADOOP_HOME/etc/hadoop/hdfs-site.xml
+			
+		# Add the follwing lines ot the file
+		
+			-----------------------------------------------------------
+            <configuration>
+              <property>
+                <name>dfs.replication</name>
+                <value>1</value>
+              </property>
+            
+              <property>
+                <name>dfs.namenode.name.dir</name>
+                <value>file:///mnt/data/hadoop/hdfs/namenode</value>
+              </property>
+            
+              <property>
+                <name>dfs.datanode.data.dir</name>
+                <value>file:///mnt/data/hadoop/hdfs/datanode</value>
+              </property>
+            </configuration>					
+			-----------------------------------------------------------
+			
+		# Save and close the file
+		
+	# mapred-site.xml
+	
+		# Edit file
+		
+			$ nano $HADOOP_HOME/etc/hadoop/mapred-site.xml
+			
+		# Add the follwing lines ot the file
+		
+			-----------------------------------------------------------
+			<configuration> 
+			  <property> 
+				<name>mapreduce.framework.name</name> 
+				<value>yarn</value> 
+			  </property> 
+			</configuration>					
+			-----------------------------------------------------------
+		# Save and close the file
+		
+	# yarn-site.xml
+	
+		# Edit file
+		
+			$ nano $HADOOP_HOME/etc/hadoop/yarn-site.xml
+			
+		# Add the follwing lines ot the file
+		
+			-----------------------------------------------------------
+			<configuration>
+			  <property>
+				<name>yarn.nodemanager.aux-services</name>
+				<value>mapreduce_shuffle</value>
+			  </property>
+			</configuration>
+			-----------------------------------------------------------
+		# Save and close the file
+	
+	
+	# Validate the Hadoop configuration and format HDFS namenode
+	
+		$ hdfs namenode -format
+		
+		2024-09-20 17:09:26,784 INFO namenode.NameNode: STARTUP_MSG:
+		/************************************************************
+		STARTUP_MSG: Starting NameNode
+		STARTUP_MSG:   host = ubuntu20-161/127.0.1.1
+		STARTUP_MSG:   args = [-format]
+		STARTUP_MSG:   version = 3.4.0
+		...
+		2024-09-20 17:09:30,072 INFO namenode.NameNode: SHUTDOWN_MSG:
+		/************************************************************
+		SHUTDOWN_MSG: Shutting down NameNode at ubuntu20-161/127.0.1.1
+		************************************************************/
+		
+		
+6.	Start the Apache Hadoop Cluster
+
+	# Start namenode & datanode 
+	
+		$ start-dfs.sh
+
+	# Once done setting all the configs, restart the Hadoop services
+		
+		$ stop-all.sh
+		$ start-all.sh
+		
+	# Start the YARN resource and node managers.
+		$ start-yarn.sh
+		
+	# Verify all the running components.
+
+		$ jps
+
+		
+7.	Access Hadoop from Browser
+
+	# For Namenode
+
+		http://<server-IP>:9870
+		
+	# For Datanode
+	
+		http://<server-IP>:9864
+	
+	# The YARN Resource Manager 
+		
+		http://<server-IP>:8088
+
+
+8.	Hadoop Test
+	
+	# Create user home dir
+	
+		$ hdfs dfs -mkdir -p /user/hadoop
+        
+        $ hdfs dfs -ls /
+        
+        Found 1 items
+        drwxr-xr-x   - hadoop supergroup          0 2024-10-03 15:01 /user
+		
+	# Create a empty file
+	
+        $ touch empty.txt 
+
+	# Put file to hdaoop 
+	
+        $ hdfs dfs -put empty.txt /user/hadoop
+        $ hdfs dfs -ls /user/hadoop
+        
+        Found 1 items
+        -rw-r--r--   1 hadoop supergroup          0 2024-10-03 15:04 /user/hadoop/empty.txt
+
+    $ Remove file from hadoop
+
+        $ hdfs dfs -rm /user/hadoop/empty.txt
+        
+        Deleted /user/hadoop/empty.txt
+    
+        $ hdfs dfs -ls /user/hadoop
+
+    # Remove directory from hadoop
+
+        $ hdfs dfs -mkdir /user/hadoop/tmp
+        $ hdfs dfs -rm -r /user/hadoop/tmp
+	
+	# HDFS shell commands
+	
+		$ hdfs dfs -help
