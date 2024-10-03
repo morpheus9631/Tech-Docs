@@ -1,0 +1,176 @@
+240923_Setup Hadoop DataNode into Cluster on Ubuntu 20.04
+
+
+0.  Copy Public key to the others nodes
+
+	# We assume there are three nodes in the cluster: 131 is the namenode, and the others are datanodes.
+	
+		$ ssh-copy-id -p 2200 -i $HOME/.ssh/id_rsa.pub hadoop@hadoop131
+		$ ssh-copy-id -p 2200 -i $HOME/.ssh/id_rsa.pub hadoop@hadoop132
+		$ ssh-copy-id -p 2200 -i $HOME/.ssh/id_rsa.pub hadoop@hadoop133
+		
+
+	# Edit route file
+	
+		Add the follwing lines to the file
+	
+		$ nano /etc/hosts
+		
+		-------------------------------------------------------------------
+		192.168.0.131 hadoop131
+		192.168.0.132 hadoop132
+		192.168.0.133 hadoop133
+		-------------------------------------------------------------------
+
+
+1.	Install Hadoop on each Machine
+
+	# Download stable version
+	
+		$ wget https://downloads.apache.org/hadoop/common/stable/hadoop-3.4.0.tar.gz
+
+	# Extract the downloaded file
+	
+		$ tar -xvzf hadoop-3.4.0.tar.gz
+		
+	# Create logs & tmp dir
+	
+		$ mkdir hadoop-3.4.0/{logs,tmp}
+	
+	# Move directory
+	
+		$ sudo mv hadoop-3.4.0 /opt/hadoop-3.4.0
+		
+	# Change the ownership of hadoop directory
+	
+		$ sudo chown -R hadoop:hadoop /opt/hadoop-3.4.0
+			
+			
+2.	Setup Environment paths
+
+	# Add hadoop-paths.sh
+	
+		$ nano ~/hadoop-paths.sh
+		
+		-------------------------------------------------------------------
+		# Hadoop Environment Variables
+		export HADOOP_HOME=/opt/hadoop-3.4.0
+		export HADOOP_INSTALL=$HADOOP_HOME
+		export HADOOP_MAPRED_HOME=$HADOOP_HOME
+		export HADOOP_COMMON_HOME=$HADOOP_HOME
+		export HADOOP_HDFS_HOME=$HADOOP_HOME
+		export HADOOP_COMMON_LIB_NATIVE_DIR=$HADOOP_HOME/lib/native
+		export PATH=$PATH:$HADOOP_HOME/sbin:$HADOOP_HOME/bin
+		export HADOOP_OPTS="-Djava.library.path=$HADOOP_HOME/lib/native"
+		export HADOOP_LOG_DIR=$HADOOP_HOME/logs
+		export HADOOP_TMP_DIR=$HADOOP_HOME/tmp
+		export YARN_HOME=$HADOOP_HOME
+		
+		export LD_LIBRARY_PATH=$HADOOP_HOME/lib/native
+		-------------------------------------------------------------------
+		
+	# Edir ~/.bashrc
+		
+		-------------------------------------------------------------------
+		...
+		export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+		source /home/hadoop/hadoop-paths.sh
+		-------------------------------------------------------------------
+		
+		
+3.	Add DataNode list to the Workers file
+		
+		$ nano $HADOOP_HOME/etc/hadoop/workers
+		
+		# Add the following lines to the file
+		
+		-------------------------------------------------------------------
+		hadoop131
+		hadoop132
+		hadoop133
+		-------------------------------------------------------------------
+		or 
+		-------------------------------------------------------------------
+		192.168.0.131
+		192.168.0.132
+		192.168.0.133
+		-------------------------------------------------------------------
+			
+
+4.	Edit hadoop-env.sh
+
+	$ nano /opt/hadop-3.4.0/etc/hadoop/hadoop-env.sh
+	
+		# Add the following lines to the file
+	
+		-----------------------------------------------------------
+		export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+		export HADOOP_SSH_OPTS="-p <port num>"
+		-----------------------------------------------------------
+			
+		e.g.
+		-----------------------------------------------------------
+		export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+		export HADOOP_SSH_OPTS="-p 2022"
+		-----------------------------------------------------------
+
+			
+5.	Add NameNode URL
+		
+	# Add the following lines to the file.
+
+		$ nano /opt/hadoop-3.4.0/etc/hadoop/core-site.xml
+
+		# Add the follwing lines to the file
+
+		-------------------------------------------------------------------
+        <configuration>
+          <property>
+            <name>fs.defaultFS</name>
+            <value>hdfs://192.168.0.131:9000</value>
+          </property>
+        </configuration>
+		-------------------------------------------------------------------
+
+
+6.	Add DataNode storage path
+		
+	# Create datanode path
+		
+		$ mkdir -p /home/hadoop/hdfs/{datanode}
+		
+	# Edit hdfs-site.xml
+	
+		$ nano /opt/hadoop-3.4.0/etc/hadoop/hdfs-site.xml
+		
+		# Add the follwing lines to the file
+		
+		-------------------------------------------------------------------
+        <configuration>
+          <property>
+            <name>dfs.datanode.data.dir</name>
+            <value>file:///home/hadoop/hdfs/datanode</value>
+          </property>
+        </configuration>
+		-------------------------------------------------------------------
+			
+			
+7.	Start DataNode service
+		
+	$ hdfs --daemon start datanode
+	
+	
+8.  Check DataNode infomation
+
+	# Use a browser to visit namenode
+	
+		'http://<datanode IP>:9870'
+		
+		Summary -> Live Nodes -> Click link
+
+		
+	# Use a browser to visit datanode
+	
+		'http://<datanode IP>:9864'
+	
+	

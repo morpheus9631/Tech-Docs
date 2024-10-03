@@ -241,14 +241,14 @@ Installing MicroK8s on Ubuntu 24.04
             ====
             ca.crt:     1123 bytes
             namespace:  11 bytes
-            token:      eyJhbGciOiJSUzI1NiIsImtpZCI6IjBYTnJ4S3VGRTFONGF3UDRLVlRYSjByNjlIbHRmS3dwbm92Ni01WjNmMjgifQ....-r46NWtSHWg
+            token:      eyJhbGciOiJSUzI1NiIsImtpZCI6IjBYTnJ4S3VGRTFONGF3UDRLVlRYSjByNjlIbHRmS3dwbm92Ni01WjNmMjgifQ...-r46NWtSHWg
 
 
     # Create expiration token
 
         $ kubectl create token default
     
-            eyJhbGciOiJSUzI1NiIsImtpZCI6IjBYTnJ4S3VGRTFONGF3UDRLVlRYSjByNjlIbHRmS3dwbm92Ni01WjNmMjgifQ.eyJhdWQiOlsiaHR0cHM6Ly9rdWJlcm5ldGVzLmRlZmF1bHQuc3ZjIl0sImV4cCI6MTcyMTU2OTY1NSwiaWF0IjoxNzIxNTY2MDU1LCJpc3MiOiJodHRwczovL2t1YmVybmV0ZXMuZGVmYXVsdC5zdmMiLCJqdGkiOiI0MThjZWZlZi1kYjRkLTRjM2QtOWQ5MC02ZWZlN2VmZTA4ODkiLCJrdWJlcm5ldGVzLmlvIjp7Im5hbWVzcGFjZSI6ImRlZmF1bHQiLCJzZXJ2aWNlYWNjb3VudCI6eyJuYW1lIjoiZGVmYXVsdCIsInVpZCI6Ijk5Yzg3ODY3LWQ4ODctNGFiYi04MWFlLWIyMjA5YzNhYzgzYyJ9fSwibmJmIjoxNzIxNTY2MDU1LCJzdWIiOiJzeXN0ZW06c2VydmljZWFjY291bnQ6ZGVmYXVsdDpkZWZhdWx0In0.ir1tY4xKJNfHljKWDS-kc3jR9f-zcXTnaOGIQHSHGazFmHd2_PLvRNFdUsEVU0tKKjrdNk_P5fRbi-lzntHKSzJd885eu1H-5YErmu82DcTDkwcFWtPmpPaSti-twUixNOyXtTN_jSdjXLupAIFw0oI4ATFDEeSipJOcp-AWOMgeiPUl3wd1Q9F8eVep1vhvhJZq_amWrWeDAZrRSGMl3nSFbc3xjuIgv5hZyLG8FYVHc-7FwbCby4Ckv6zLtL34raPgqT5ItcuvIXsuCTlgeb50Q8s3PjPHT-fAtVzkcteZVbsxD4FRisvCLTOE7gR1xAs1u_4wGaAHmKlz3J5D3g
+            eyJhbGciOiJSUzI1NiIsImtpZCI6IjBYTnJ4S3VGRTFONGF3UDRLVlRYSjByNjlIbHRmS3dwbm92Ni01WjNmMjgifQ..._4wGaAHmKlz3J5D3g
 
 
     # Creat without expiration token

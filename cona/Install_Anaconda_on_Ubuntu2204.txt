@@ -1,0 +1,108 @@
+Install Anaconda on Ubuntu 22.04
+
+
+1.  Update package index
+
+    $ sudo apt update
+
+
+2.  Download Anaconda
+
+    # Download 
+	
+        $ cd  ~/
+	    $ mkdir conda && cd conda
+        $ wget https://repo.anaconda.com/archive/Anaconda3-2024.06-1-Linux-x86_64.sh
+
+        Download url: https://repo.anaconda.com/archive/
+
+
+    # Check SHA256 
+    
+        SHA256: 539bb43d9a52d758d0fdfa1b1b049920ec6f8c6d15ee9fe4a423355fe551a8f7
+
+        $ sha256sum Anaconda3-2024.06-1-Linux-x86_64.sh
+        539bb43d9a52d758d0fdfa1b1b049920ec6f8c6d15ee9fe4a423355fe551a8f7
+
+3.  Install Anaconda
+
+    $ bash Anaconda3-2024.06-1-Linux-x86_64.sh
+
+        Welcome to Anaconda3 2024.06-1
+
+        In order to continue the installation process, please review the license
+        agreement.
+        Please, press ENTER to continue
+        >>> 
+        ANACONDA TERMS OF SERVICE
+        ...
+        Version 4.0 | Last Modified: March 31, 2024 | ANACONDA TOS
+        
+        
+        Do you accept the license terms? [yes|no]
+        >>>  yes
+        
+        Anaconda3 will now be installed into this location:
+        /home/<your account>/anaconda3
+        
+          - Press ENTER to confirm the location
+          - Press CTRL-C to abort the installation
+          - Or specify a different location below
+        
+        [/home/<your account>/anaconda3] >>>
+        PREFIX=/home/<your account>/anaconda3
+        Unpacking payload ...
+        
+        Installing base environment...
+        
+        Downloading and Extracting Packages:
+        
+        Downloading and Extracting Packages:
+        
+        Preparing transaction: done
+        Executing transaction: done
+        installation finished.
+        Do you wish to update your shell profile to automatically initialize conda?
+        This will activate conda on startup and change the command prompt when activated.
+        If you'd prefer that conda's base environment not be activated on startup,
+           run the following command when conda is activated:
+        
+        conda config --set auto_activate_base false
+        
+        You can undo this by running `conda init --reverse $SHELL`? [yes|no]
+        [no] >>> yes
+        no change     /home/<your account>/anaconda3/condabin/conda
+        no change     /home/<your account>/anaconda3/bin/conda
+        no change     /home/<your account>/anaconda3/bin/conda-env
+        no change     /home/<your account>/anaconda3/bin/activate
+        no change     /home/<your account>/anaconda3/bin/deactivate
+        no change     /home/<your account>/anaconda3/etc/profile.d/conda.sh
+        no change     /home/<your account>/anaconda3/etc/fish/conf.d/conda.fish
+        no change     /home/<your account>/anaconda3/shell/condabin/Conda.psm1
+        no change     /home/<your account>/anaconda3/shell/condabin/conda-hook.ps1
+        no change     /home/<your account>/anaconda3/lib/python3.12/site-packages/xontrib/conda.xsh
+        no change     /home/<your account>/anaconda3/etc/profile.d/conda.csh
+        modified      /home/<your account>/.bashrc
+        
+        ==> For changes to take effect, close and re-open your current shell. <==
+
+        Thank you for installing Anaconda3!
+
+
+    # Disable auto activate base
+
+        I do not like automatically entering a conda environment upon connection, 
+        so I disabled this feature.
+
+        $ conda config --set auto_activate_base false
+
+
+4.  Activate the Installation
+
+    $ eval "$(/home/<your account>/anaconda3/bin/conda shell.bash hook)"
+    
+    $ conda init
+    
+    # Reopen shell terminal
+
+    
