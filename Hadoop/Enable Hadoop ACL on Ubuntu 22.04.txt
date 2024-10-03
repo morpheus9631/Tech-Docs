@@ -1,0 +1,191 @@
+Enable Hadoop Access Control List (ACL)
+
+# The goal is to set up the /dvc-storage directory in Hadoop, 
+  with ownership assigned to hadoop:dvc-group. 
+  Any user belonging to the dvc-group should be able to create subdirectories under /dvc-storage. 
+  Any user can read other users' directories, 
+  but they can only modify the directories they have created themselves.
+
+
+1.  Enable Hadoop ACL mechanism
+
+    On Hadoop NameNode:
+
+    # Edit hdfs-site.xml
+		
+    	$ nano /opt/hadoop-3.4.0/etc/hadoop/hdfs-site.xml
+			
+		Add the following lines to the file:
+			
+		-------------------------------------------------------------------
+		  <property>
+			<name>dfs.permissions.enabled</name>
+			<value>true</value>
+		  </property>
+		  <property>
+			<name>dfs.namenode.acls.enabled</name>
+			<value>true</value>
+		  </property>
+		-------------------------------------------------------------------
+
+    # Stop & Start Hadoop service
+
+        $ stop-dfs.sh
+        
+            Stopping namenodes on [0.0.0.0]
+            Stopping datanodes
+            Stopping secondary namenodes [ai-server]
+        
+        $ start-dfs.sh
+            
+            Starting namenodes on [0.0.0.0]
+            Starting datanodes
+            Starting secondary namenodes [ai-server]
+
+
+2. Create management user and group
+
+    # Create 'dvc-group' group 
+			
+		$ sudo groupadd dvc-group
+        
+        $ getent group| grep dvc-group
+        
+        dvc-group:x:1002:
+
+
+    # Create 'dvc-user' belongs to 'dvc-group'
+
+        $ sudo useradd -m -G dvc-group dvc-user
+        
+        $ sudo passwd dvc-user
+        
+        New password:
+        BAD PASSWORD: The password contains the user name in some form
+        Retype new password:
+        passwd: password updated successfully
+
+    # Check 'dvc-user' group
+            
+        $ groups dvc-user
+        dvc-user : dvc-user dvc-group
+
+
+3.  Test ACL 
+
+    # Create '/dvc-storage' directory
+
+        $ hdfs dfs -mkdir -p /dvc-storage
+
+        $ hdfs dfs -ls /
+        
+        Found 2 items
+        drwxr-xr-x   - hadoop supergroup          0 2024-10-03 15:50 /dvc-storage
+        drwxr-xr-x   - hadoop supergroup          0 2024-10-03 15:01 /user
+
+
+    # Grant privileges for the 'dvc-storage' directory to the group 'dvc-group'.
+			
+		$ hdfs dfs -setfacl -m group:dvc-group:rwx /dvc-storage
+
+			
+    # Check ACL settings for '/dvc-storage' 
+		
+        $ hdfs dfs -getfacl /dvc-storage
+        
+        # file: /dvc-storage
+        # owner: hadoop
+        # group: supergroup
+        user::rwx
+        group::r-x
+        group:dvc-group:rwx
+        mask::rwx
+        other::r-x
+
+
+    # Grant privileges for the 'dvc-storage' directory to the user 'dvc-user'.
+
+        $ hdfs dfs -setfacl -m user:dvc-user:rwx /dvc-storage
+
+
+    # Check ACL settings for '/dvc-storage' 
+
+        $ hdfs dfs -getfacl '/dvc-storage'
+        
+        # file: /dvc-storage
+        # owner: hadoop
+        # group: supergroup
+        user::rwx
+        user:dvc-user:rwx
+        group::r-x
+        group:dvc-group:rwx
+        mask::rwx
+        other::r-x
+
+
+	# Remove privileges for the 'dvc-storage' directory from the user 'dvc-user'.
+			
+		$ hdfs dfs -setfacl -x user:dvc-user /dvc-storage
+
+
+    # Check ACL settings for '/dvc-storage' 
+
+        $ hdfs dfs -getfacl /dvc-storage
+
+        # file: /dvc-storage
+        # owner: hadoop
+        # group: supergroup
+        user::rwx
+        group::r-x
+        group:dvc-group:rwx
+        mask::rwx
+        other::r-x
+
+
+4.  Create a Shared directory from Hadoop Client machine:
+
+    On the Hadoop NameNode:
+
+        # Create an account with the same name as the client account.
+
+            $ sudo useradd <username>
+
+        # Assign them to the 'dvc-group'.
+
+            $ sudo usermod -aG dvc-group <username>
+    
+    On the user host:
+
+        # Install Hadoop according to the Hadoop Client installation procedure.
+
+        # Assign the hadoop group to the user account.
+
+            $ sudo usermod -aG hadoop <username>
+
+        # Connect to the Hadoop NameNode using SSH and then log out.
+
+            $ ssh -p <port num> <username>@<NameNode IP>
+
+            $ exit
+        
+        # Create the shared directory and check the ACL settings of the shared directory.
+
+            $ hdfs dfs -mkdir -p /dvc-storage/<test dir>
+
+        # Check privilege of the test dir
+
+            $ hdfs dfs -ls /dvc-storage
+            
+            Found 1 items
+            drwxr-xr-x   - <username> supergroup          0 2024-10-03 16:26 /dvc-storage/test-acl
+
+
+5.	Others
+    
+	# Hadoop ACL specification syntax:
+	
+		# hdfs dfs -setfacl {-m|-x <acl_spec>}
+	
+		# acl_spec: [default|user|group]:<username|groupname>:<permission> <path>
+	
+
